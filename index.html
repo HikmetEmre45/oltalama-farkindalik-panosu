@@ -295,4 +295,76 @@
 
     <footer>
         <p>Manisa Celal Bayar Üniversitesi · Büyük Veri Analistliği · Bulut Bilişim ve Siber Güvenlik Dersi</p>
-        <p style="margin-top: 4px;">Öğretim Elemanı: Öğr. Gör. Osman Can Çetlenbik | <a href="https://github.com/hikmetemre45/oltalama-farkindalik-panosu" target="_blank">
+        <p style="margin-top: 4px;">Öğretim Elemanı: Öğr. Gör. Osman Can Çetlenbik | <a href="https://github.com/hikmetemre45/oltalama-farkindalik-panosu" target="_blank">Kaynak Deposu (GitHub)</a></p>
+    </footer>
+</div>
+
+<script>
+    // 1. Karttaki Zorunlu Kural: Sunucu Taraflı Mantıkla Birebir Eşleşen Defang Fonksiyonu
+    function defangLogic(str) {
+        if (!str || typeof str !== 'string') return '';
+        if (str.length > 2048) throw new Error("Girdi boyut sınırı aşıldı! (Maks 2048)");
+        return str
+            .replace(/^http:\/\//i, 'hxxp://')
+            .replace(/^https:\/\//i, 'hxxps://')
+            .replace(/^ftp:\/\//i, 'fxp://')
+            .replace(/\./g, '[.]')
+            .replace(/@/g, '[@]');
+    }
+
+    // 2. Sosyal Ag Analizi projesindeki veriyle birebir eslesen tehdit veri akisi
+    const sampleThreats = [
+        { threat: "Credential Phishing", raw_url: "https://e-devlet-kapisi-onay-sorgu.com/login", ip: "185.193.12.1", asn: "AS_1000_CloudHost" },
+        { threat: "Banking Scam", raw_url: "http://ziraat-guvenli-bakiye-iade.net/islem", ip: "185.193.12.2", asn: "AS_1001_CloudHost" },
+        { threat: "Malware Drop", raw_url: "http://fatura-odeme-ekstresi-pdf.org/payload.exe", ip: "185.193.12.3", asn: "AS_1002_CloudHost" },
+        { threat: "Phishing SMS", raw_url: "https://ptt-kargo-teslimat-takip-portal.com/track", ip: "185.193.12.4", asn: "AS_1003_CloudHost" },
+        { threat: "Credential Phishing", raw_url: "http://e-posta-sifre-sifirla-hesap.com/auth", ip: "185.193.12.5", asn: "AS_1004_CloudHost" },
+        { threat: "Fake Crypto Portal", raw_url: "https://binance-tr-guvenlik-dogrulama.xyz/wallets", ip: "185.193.12.6", asn: "AS_1005_CloudHost" },
+        { threat: "Banking Phishing", raw_url: "http://garanti-bbva-mobil-onay-sistemi.com/giris", ip: "185.193.12.7", asn: "AS_1006_CloudHost" }
+    ];
+
+    // 3. Tabloyu Guvenli Bir Bicimde (Asla <a> Linki Olmadan) Doldur
+    function renderThreatFeed() {
+        const tbody = document.getElementById('threatTableBody');
+        tbody.innerHTML = '';
+
+        sampleThreats.forEach(item => {
+            const tr = document.createElement('tr');
+            
+            // Defanged URL hesapla
+            const safeUrl = defangLogic(item.raw_url);
+            const badgeClass = item.threat.includes('Malware') ? 'tag-malware' : 'tag-phish';
+
+            tr.innerHTML = `
+                <td><span class="tag-pill ${badgeClass}">${item.threat}</span></td>
+                <td><span class="defanged-box">${safeUrl}</span></td>
+                <td style="color: var(--text-muted); font-size: 0.8rem;">${item.ip}<br><code>${item.asn}</code></td>
+                <td><span style="color: var(--emerald); font-size: 0.75rem; font-weight: 600;">✓ Tıklanamaz</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 4. Test Konsolu Isleyisi
+    function handleDefangAction() {
+        const input = document.getElementById('customUrl').value;
+        const resultDiv = document.getElementById('defangResult');
+        try {
+            const defanged = defangLogic(input);
+            resultDiv.innerText = defanged;
+            resultDiv.style.color = "var(--emerald)";
+        } catch (err) {
+            resultDiv.innerText = "HATA: " + err.message;
+            resultDiv.style.color = "var(--rose)";
+        }
+    }
+
+    // Sayfa acildiginda baslat
+    window.onload = function() {
+        renderThreatFeed();
+        handleDefangAction();
+    };
+</script>
+
+</body>
+</html>
