@@ -3,10 +3,7 @@
 **Öğrenci:** Hikmet Emre Gültekin (2516016024)  
 **Öğretim Elemanı:** Öğr. Gör. Osman Can Çetlenbik  
 
----
 
-### 📌 CV Başarı Cümlesi
-> "Oltalama tehdit istihbaratı verilerini işleyen sunucusuz web panosunu 0 TL bütçe hedefiyle bulutta yayına aldım; istemci tarafında zararlı link yürütülmesini engelleyen güvenli mimari, girdi boyutu sınırlı regex defang motoru ve 10 birim test vakası ile uçtan uca uygulama güvenliğini sağladım."
 
 ---
 
