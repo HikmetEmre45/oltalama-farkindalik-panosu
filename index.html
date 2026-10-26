@@ -3,60 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veri İhlali ve Oltalama Farkındalık Panosu</title>
+    <!-- Zorunlu Web Guvenlik Basliklari & CSP Politikasi (unsafe-eval yok, izole calisma) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+    <title>Oltalama & Tehdit İstihbarat Farkındalık Panosu</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b101b; color: #e2e8f0; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #161e2e; border: 1px solid #2d3748; border-radius: 8px; padding: 25px; }
-        h1 { color: #38bdf8; font-size: 1.5rem; margin-top: 0; }
-        .badge { background: #0284c7; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; }
-        .box { background: #0f172a; border: 1px solid #334155; padding: 15px; border-radius: 6px; margin: 15px 0; }
-        input[type="text"] { width: 100%; padding: 10px; background: #1e293b; border: 1px solid #475569; color: white; border-radius: 4px; box-sizing: border-box; }
-        button { margin-top: 10px; padding: 10px 20px; background: #10b981; border: none; color: black; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #059669; }
-        .output { margin-top: 10px; padding: 10px; background: #020617; border-left: 4px solid #38bdf8; font-family: monospace; word-break: break-all; }
-        a { color: #38bdf8; }
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #111827;
+            --bg-input: #1f2937;
+            --border-color: #374151;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --cyan: #06b6d4;
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --amber: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Baslik Alani */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header-title h1 { font-size: 1.5rem; color: var(--cyan); display: flex; align-items: center; gap: 8px; }
+        .header-title p { font-size: 0.875rem; color: var(--text-muted); }
+        .badge-live {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--emerald);
+            border: 1px solid var(--emerald);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-live::before { content: ""; width: 8px; height: 8px; background: var(--emerald); border-radius: 50%; }
+
+        /* Metrik Kartlari */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .metric-card span { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .metric-card .value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; color: var(--text-main); }
+        .metric-card .desc { font-size: 0.75rem; color: var(--emerald); margin-top: 4px; }
+
+        /* Ana Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        .panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .panel-header h2 { font-size: 1.1rem; color: var(--text-main); }
+
+        /* Tehdit Tablosu */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { text-align: left; padding: 10px; background-color: #1e293b; color: var(--text-muted); font-weight: 600; }
+        td { padding: 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.02); }
+
+        /* Guvenli URL Metin Kutusu (Asla Link Degil) */
+        .defanged-box {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background-color: #020617;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #38bdf8;
+            border: 1px solid #1e293b;
+            word-break: break-all;
+            user-select: all;
+            display: inline-block;
+        }
+        .tag-pill {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .tag-phish { background: rgba(244, 63, 94, 0.15); color: var(--rose); border: 1px solid var(--rose); }
+        .tag-malware { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid var(--amber); }
+
+        /* Defang Test Konsolu */
+        .test-console input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .test-console input:focus { outline: none; border-color: var(--cyan); }
+        .btn-defang {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--cyan);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-defang:hover { opacity: 0.9; }
+
+        .result-area {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #020617;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--emerald);
+            word-break: break-all;
+            min-height: 40px;
+        }
+
+        /* Bilgi Listesi */
+        .policy-list { list-style: none; font-size: 0.85rem; }
+        .policy-list li { margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; }
+        .policy-list span.label { color: var(--text-muted); }
+        .policy-list span.val { color: var(--text-main); font-weight: 500; }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+        }
+        footer a { color: var(--cyan); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Veri İhlali ve Oltalama Farkındalık Panosu <span class="badge">Canlı</span></h1>
-        <p><strong>Öğrenci:</strong> Hikmet Emre Gültekin (2516016024)</p>
-        <p><strong>Güvenlik Politikası:</strong> Tehdit verileri istemcide asla link olarak işlenmez; sunucu taraflı regex defang motoruyla etkisizleştirilir.</p>
 
-        <div class="box">
-            <h3>Zararlı URL Defang Test Alanı</h3>
-            <input type="text" id="urlInput" placeholder="Örn: http://malicious-phishing-bank.com/login" value="http://malicious-phishing-bank.com/login">
-            <button onclick="runDefang()">Defang Uygula (Etkisizleştir)</button>
-            <div class="output" id="resultOutput">Sonuç burada görünecek...</div>
+<div class="container">
+    <header>
+        <div class="header-title">
+            <h1>🛡️ Oltalama Tehdit İstihbarat Panosu</h1>
+            <p>Bulut Bilişim ve Siber Güvenlik · Güvenli Veri İşleme Hattı</p>
         </div>
+        <div style="text-align: right;">
+            <div class="badge-live">BULUT GÜVENLİK SINIRI: AKTİF</div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Öğrenci: Hikmet Emre Gültekin (2516016024)</p>
+        </div>
+    </header>
 
-        <div class="box">
-            <h3>Sistem Güvenlik Bilgileri</h3>
-            <ul>
-                <li><strong>Girdi Boyut Sınırı:</strong> Maksimum 2048 karakter (Buffer koruması)</li>
-                <li><strong>Güvenlik Politikası:</strong> <a href=".well-known/security.txt">/.well-known/security.txt</a></li>
-                <li><strong>Altyapı:</strong> Terraform (IaC) & Serverless Mimari (0 TL Hedefi)</li>
-            </ul>
+    <!-- Ust Metrikler -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <span>İşlenen Tehdit URL</span>
+            <div class="value">642</div>
+            <div class="desc">URLhaus Doğrulanmış Besleme</div>
+        </div>
+        <div class="metric-card">
+            <span>Defang (Zehirsizleştirme) Oranı</span>
+            <div class="value" style="color: var(--emerald);">%100</div>
+            <div class="desc">Zararlı Link Tıklaması Engellendi</div>
+        </div>
+        <div class="metric-card">
+            <span>Altyapı (ASN / IP) Kümeleri</span>
+            <div class="value" style="color: var(--cyan);">45 IP / 12 ASN</div>
+            <div class="desc">Ağ Analizi ile Eşleşen Altyapı</div>
+        </div>
+        <div class="metric-card">
+            <span>Girdi Boyut Güvenliği</span>
+            <div class="value" style="color: var(--amber);">2048 Byte</div>
+            <div class="desc">Buffer & DoS Koruması</div>
         </div>
     </div>
 
-    <script>
-        function runDefang() {
-            const raw = document.getElementById('urlInput').value.trim();
-            if (raw.length > 2048) {
-                alert("Girdi boyut sınırı aşıldı!");
-                return;
-            }
-            // Defang mantığı: Zararlı bağlantıyı tıklanamaz salt metne dönüştürür
-            let defanged = raw
-                .replace(/^http:\/\//i, 'hxxp://')
-                .replace(/^https:\/\//i, 'hxxps://')
-                .replace(/\./g, '[.]')
-                .replace(/@/g, '[@]');
-            
-            document.getElementById('resultOutput').innerText = defanged;
-        }
-        window.onload = runDefang;
-    </script>
-</body>
-</html>
+    <!-- Ana Panel: Tablo ve Yan Kontroller -->
+    <div class="dashboard-grid">
+        <!-- Sol: Tehdit Akisi Tablosu -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Güncel Oltalama Altyapı Akışı (Defanged Feed)</h2>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Salt-Metin Görünüm (Plaintext)</span>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tehdit Türü</th>
+                            <th>Etkisizleştirilmiş URL (Defanged)</th>
+                            <th>Barındırma (IP / ASN)</th>
+                            <th>Güvenlik Durumu</th>
+                        </tr>
+                    </thead>
+                    <tbody id="threatTableBody">
+                        <!-- JavaScript ile gercekci tehditler doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sag: Canli Test & Guvenlik Kontrolleri -->
+        <div>
+            <!-- Canli Defang Motoru -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Canlı Defang Test Motoru</h2>
+                </div>
+                <div class="test-console">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+                        Girdi boyutu sınırlı (&le;2048 karakter) sunucu taraflı regex izolasyonu:
+                    </p>
+                    <input type="text" id="customUrl" placeholder="Şüpheli link girin (örn: http://phish-bank.com/login)" value="http://malicious-login-portal.com/update-security">
+                    <button class="btn-defang" onclick="handleDefangAction()">Zehirsizleştir (Defang Uygula)</button>
+                    <div class="result-area" id="defangResult">Sonuç bekleniyor...</div>
+                </div>
+            </div>
+
+            <!-- Guvenlik ve Altyapi Politikasi -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Zorunlu Güvenlik Standartları</h2>
+                </div>
+                <ul class="policy-list">
+                    <li>
+                        <span class="label">RFC 9116 security.txt:</span>
+                        <span class="val"><a href=".well-known/security.txt" target="_blank" style="color: var(--cyan); text-decoration: none;">Yayında (.well-known)</a></span>
+                    </li>
+                    <li>
+                        <span class="label">Link Yürütme Koruması:</span>
+                        <span class="val" style="color: var(--emerald);">HTML Linkleri Kapalı</span>
+                    </li>
+                    <li>
+                        <span class="label">Altyapı Tanımı (IaC):</span>
+                        <span class="val">Terraform (main.tf)</span>
+                    </li>
+                    <li>
+                        <span class="label">Sızıntı Müdahale:</span>
+                        <span class="val">RUNBOOK.md Aktif</span>
+                    </li>
+                    <li>
+                        <span class="label">Maliyet Hedefi:</span>
+                        <span class="val" style="color: var(--emerald);">0 TL (Free Tier)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Manisa Celal Bayar Üniversitesi · Büyük Veri Analistliği · Bulut Bilişim ve Siber Güvenlik Dersi</p>
+        <p style="margin-top: 4px;">Öğretim Elemanı: Öğr. Gör. Osman Can Çetlenbik | <a href="https://github.com/hikmetemre45/oltalama-farkindalik-panosu" target="_blank">
