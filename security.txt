@@ -1,0 +1,6 @@
+Contact: mailto:2516016024@cbu.edu.tr
+Expires: 2027-10-30T09:00:00.000Z
+Preferred-Languages: tr, en
+Canonical: https://github.com/hikmetemre45/bva2205-portfolyo/blob/main/.well-known/security.txt
+Policy: https://github.com/hikmetemre45/bva2205-portfolyo/blob/main/SECURITY.md
+Acknowledgments: https://github.com/hikmetemre45/bva2205-portfolyo/blob/main/HALL_OF_FAME.md
