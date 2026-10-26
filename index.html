@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Zorunlu Web Guvenlik Basliklari & CSP Politikasi (unsafe-eval yok, izole calisma) -->
+    <!-- Zorunlu Guvenlik Politikasi: unsafe-eval yok, izole calisma -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
-       <title>Veri İhlali ve Oltalama Farkındalık Panosu</title>
+    <title>Veri İhlali ve Oltalama Farkındalık Panosu</title>
     <style>
         :root {
             --bg-main: #0b0f19;
@@ -29,7 +29,7 @@
             line-height: 1.5;
         }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1250px; margin: 0 auto; }
 
         /* Baslik Alani */
         header {
@@ -42,26 +42,44 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .header-title h1 { font-size: 1.5rem; color: var(--cyan); display: flex; align-items: center; gap: 8px; }
-        .header-title p { font-size: 0.875rem; color: var(--text-muted); }
-        .badge-live {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: var(--emerald);
-            border: 1px solid var(--emerald);
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-flex;
+        .header-title h1 { font-size: 1.45rem; color: var(--cyan); display: flex; align-items: center; gap: 10px; }
+        .header-title p { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Canli Nabiz (Pulse) & Radar Efekti */
+        .live-status-box {
+            display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 6px 14px;
+            border-radius: 9999px;
         }
-        .badge-live::before { content: ""; width: 8px; height: 8px; background: var(--emerald); border-radius: 50%; }
+        .radar-pulse {
+            width: 10px;
+            height: 10px;
+            background-color: var(--emerald);
+            border-radius: 50%;
+            position: relative;
+        }
+        .radar-pulse::after {
+            content: "";
+            position: absolute;
+            top: -5px; left: -5px;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--emerald);
+            animation: pulse-ring 1.5s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
 
         /* Metrik Kartlari */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -70,18 +88,26 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--cyan);
         }
         .metric-card span { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .metric-card .value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; color: var(--text-main); }
+        .metric-card .value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; color: var(--text-main); font-family: monospace; }
         .metric-card .desc { font-size: 0.75rem; color: var(--emerald); margin-top: 4px; }
 
-        /* Ana Grid Layout */
+        /* Grid Layout */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2.2fr 1fr;
             gap: 20px;
         }
-        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 950px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .panel {
             background-color: var(--bg-card);
@@ -96,16 +122,22 @@
             align-items: center;
             margin-bottom: 16px;
         }
-        .panel-header h2 { font-size: 1.1rem; color: var(--text-main); }
+        .panel-header h2 { font-size: 1.05rem; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
-        /* Tehdit Tablosu */
-        .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { text-align: left; padding: 10px; background-color: #1e293b; color: var(--text-muted); font-weight: 600; }
-        td { padding: 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        tr:hover { background-color: rgba(255, 255, 255, 0.02); }
+        /* Canli Tablo & Animasyon */
+        .table-responsive { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+        th { text-align: left; padding: 10px; background-color: #1e293b; color: var(--text-muted); font-weight: 600; position: sticky; top: 0; z-index: 2; }
+        td { padding: 9px 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        
+        /* Yeni Gelen Tehdit Satiri Animasyonu */
+        @keyframes new-row-glow {
+            0% { background-color: rgba(6, 182, 212, 0.35); transform: translateY(-4px); }
+            100% { background-color: transparent; transform: translateY(0); }
+        }
+        .new-entry { animation: new-row-glow 2s ease-out; }
 
-        /* Guvenli URL Metin Kutusu (Asla Link Degil) */
+        /* Defanged Metin Alani */
         .defanged-box {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             background-color: #020617;
@@ -118,13 +150,27 @@
             display: inline-block;
         }
         .tag-pill {
-            padding: 2px 8px;
+            padding: 2px 7px;
             border-radius: 4px;
             font-size: 0.7rem;
             font-weight: 600;
+            white-space: nowrap;
         }
         .tag-phish { background: rgba(244, 63, 94, 0.15); color: var(--rose); border: 1px solid var(--rose); }
         .tag-malware { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid var(--amber); }
+
+        /* Canli Buton */
+        .btn-stream {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-stream:hover { background: #334155; }
 
         /* Defang Test Konsolu */
         .test-console input {
@@ -135,7 +181,7 @@
             color: var(--text-main);
             border-radius: 6px;
             margin-bottom: 10px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         .test-console input:focus { outline: none; border-color: var(--cyan); }
         .btn-defang {
@@ -158,20 +204,19 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-family: monospace;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--emerald);
             word-break: break-all;
             min-height: 40px;
         }
 
-        /* Bilgi Listesi */
-        .policy-list { list-style: none; font-size: 0.85rem; }
-        .policy-list li { margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; }
+        .policy-list { list-style: none; font-size: 0.83rem; }
+        .policy-list li { margin-bottom: 9px; display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; }
         .policy-list span.label { color: var(--text-muted); }
         .policy-list span.val { color: var(--text-main); font-weight: 500; }
 
         footer {
-            margin-top: 30px;
+            margin-top: 24px;
             text-align: center;
             font-size: 0.8rem;
             color: var(--text-muted);
@@ -179,7 +224,6 @@
             padding-top: 16px;
         }
         footer a { color: var(--cyan); text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -187,24 +231,27 @@
 <div class="container">
     <header>
         <div class="header-title">
-<h1>🛡️ Veri İhlali ve Oltalama Farkındalık Panosu</h1>
+            <h1>🛡️ Veri İhlali ve Oltalama Farkındalık Panosu</h1>
             <p>Bulut Bilişim ve Siber Güvenlik · Güvenli Veri İşleme Hattı</p>
         </div>
-        <div style="text-align: right;">
-            <div class="badge-live">BULUT GÜVENLİK SINIRI: AKTİF</div>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Öğrenci: Hikmet Emre Gültekin (2516016024)</p>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+            <div class="live-status-box">
+                <div class="radar-pulse"></div>
+                <span style="font-size: 0.75rem; font-weight: 600; color: var(--emerald); letter-spacing: 0.5px;">CANLI TEHDİT BESLEMESİ AKTİF</span>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Hikmet Emre Gültekin (2516016024)</p>
         </div>
     </header>
 
-    <!-- Ust Metrikler -->
+    <!-- Metrik Kartlari -->
     <div class="metrics-grid">
         <div class="metric-card">
             <span>İşlenen Tehdit URL</span>
-            <div class="value">642</div>
-            <div class="desc">URLhaus Doğrulanmış Besleme</div>
+            <div class="value" id="counterThreats">642</div>
+            <div class="desc" id="lastDetectTimer">Son tespit: az önce</div>
         </div>
         <div class="metric-card">
-            <span>DEFANG (ETKİSİZLEŞTİRME) ORANI</span>
+            <span>Defang (Etkisizleştirme) Oranı</span>
             <div class="value" style="color: var(--emerald);">%100</div>
             <div class="desc">Zararlı Link Tıklaması Engellendi</div>
         </div>
@@ -220,34 +267,37 @@
         </div>
     </div>
 
-    <!-- Ana Panel: Tablo ve Yan Kontroller -->
+    <!-- Ana Panel -->
     <div class="dashboard-grid">
-        <!-- Sol: Tehdit Akisi Tablosu -->
+        <!-- Sol: Canli Akan Tehdit Tablosu -->
         <div class="panel">
             <div class="panel-header">
-                <h2>Güncel Oltalama Altyapı Akışı (Defanged Feed)</h2>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Salt-Metin Görünüm (Plaintext)</span>
+                <h2>⚡ Canlı Oltalama Altyapı Akışı (Defanged Stream)</h2>
+                <div>
+                    <button class="btn-stream" id="toggleStreamBtn" onclick="toggleStream()">Akışı Duraklat</button>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;">Salt-Metin (Plaintext)</span>
+                </div>
             </div>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>Tehdit Türü</th>
-                            <th>Etkisizleştirilmiş URL (Defanged)</th>
-                            <th>Barındırma (IP / ASN)</th>
-                            <th>Güvenlik Durumu</th>
+                            <th style="width: 15%;">Tehdit Türü</th>
+                            <th style="width: 50%;">Etkisizleştirilmiş URL (Defanged)</th>
+                            <th style="width: 20%;">Barındırma (IP / ASN)</th>
+                            <th style="width: 15%;">Güvenlik</th>
                         </tr>
                     </thead>
                     <tbody id="threatTableBody">
-                        <!-- JavaScript ile gercekci tehditler doldurulacak -->
+                        <!-- Otomatik beslenecek -->
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Sag: Canli Test & Guvenlik Kontrolleri -->
+        <!-- Sag: Test ve Guvenlik Politikalari -->
         <div>
-            <!-- Canli Defang Motoru -->
+            <!-- Defang Test Konsolu -->
             <div class="panel">
                 <div class="panel-header">
                     <h2>Canlı Defang Test Motoru</h2>
@@ -256,13 +306,13 @@
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
                         Girdi boyutu sınırlı (&le;2048 karakter) sunucu taraflı regex izolasyonu:
                     </p>
-                    <input type="text" id="customUrl" placeholder="Şüpheli link girin (örn: http://phish-bank.com/login)" value="http://malicious-login-portal.com/update-security">
+                    <input type="text" id="customUrl" placeholder="Şüpheli link girin" value="http://malicious-login-portal.com/update-security">
                     <button class="btn-defang" onclick="handleDefangAction()">Defang Uygula (Etkisizleştir)</button>
                     <div class="result-area" id="defangResult">Sonuç bekleniyor...</div>
                 </div>
             </div>
 
-            <!-- Guvenlik ve Altyapi Politikasi -->
+            <!-- Zorunlu Guvenlik Standartlari -->
             <div class="panel">
                 <div class="panel-header">
                     <h2>Zorunlu Güvenlik Standartları</h2>
@@ -300,7 +350,7 @@
 </div>
 
 <script>
-    // 1. Karttaki Zorunlu Kural: Sunucu Taraflı Mantıkla Birebir Eşleşen Defang Fonksiyonu
+    // 1. Zorunlu Regex Defang Mantigi (Kart Sarti)
     function defangLogic(str) {
         if (!str || typeof str !== 'string') return '';
         if (str.length > 2048) throw new Error("Girdi boyut sınırı aşıldı! (Maks 2048)");
@@ -312,40 +362,80 @@
             .replace(/@/g, '[@]');
     }
 
-    // 2. Sosyal Ag Analizi projesindeki veriyle birebir eslesen tehdit veri akisi
-    const sampleThreats = [
+    // 2. Canli Akista Donusumlu Dusecek Tehdit Havuzu (URLhaus & Ag Analizi Eslestirmesi)
+    const threatPool = [
         { threat: "Credential Phishing", raw_url: "https://e-devlet-kapisi-onay-sorgu.com/login", ip: "185.193.12.1", asn: "AS_1000_CloudHost" },
-        { threat: "Banking Scam", raw_url: "http://ziraat-guvenli-bakiye-iade.net/islem", ip: "185.193.12.2", asn: "AS_1001_CloudHost" },
-        { threat: "Malware Drop", raw_url: "http://fatura-odeme-ekstresi-pdf.org/payload.exe", ip: "185.193.12.3", asn: "AS_1002_CloudHost" },
-        { threat: "Phishing SMS", raw_url: "https://ptt-kargo-teslimat-takip-portal.com/track", ip: "185.193.12.4", asn: "AS_1003_CloudHost" },
-        { threat: "Credential Phishing", raw_url: "http://e-posta-sifre-sifirla-hesap.com/auth", ip: "185.193.12.5", asn: "AS_1004_CloudHost" },
-        { threat: "Fake Crypto Portal", raw_url: "https://binance-tr-guvenlik-dogrulama.xyz/wallets", ip: "185.193.12.6", asn: "AS_1005_CloudHost" },
-        { threat: "Banking Phishing", raw_url: "http://garanti-bbva-mobil-onay-sistemi.com/giris", ip: "185.193.12.7", asn: "AS_1006_CloudHost" }
+        { threat: "Banking Scam", raw_url: "http://ziraat-guvenli-bakiye-iade.net/islem", ip: "185.193.12.2", asn: "AS_1000_CloudHost" },
+        { threat: "Malware Drop", raw_url: "http://fatura-odeme-ekstresi-pdf.org/payload.exe", ip: "185.193.12.3", asn: "AS_1001_FastTransit" },
+        { threat: "Phishing SMS", raw_url: "https://ptt-kargo-teslimat-takip-portal.com/track", ip: "185.193.12.4", asn: "AS_1002_GlobalHost" },
+        { threat: "Credential Phishing", raw_url: "http://e-posta-sifre-sifirla-hesap.com/auth", ip: "185.193.12.5", asn: "AS_1000_CloudHost" },
+        { threat: "Fake Crypto Portal", raw_url: "https://binance-tr-guvenlik-dogrulama.xyz/wallets", ip: "185.193.12.6", asn: "AS_1001_FastTransit" },
+        { threat: "Banking Phishing", raw_url: "http://garanti-bbva-mobil-onay-sistemi.com/giris", ip: "185.193.12.7", asn: "AS_1002_GlobalHost" },
+        { threat: "Fake Gov Portal", raw_url: "https://turkiye-gov-tr-belge-dogrulama.co/aidat", ip: "185.193.12.8", asn: "AS_1000_CloudHost" },
+        { threat: "Malware Payload", raw_url: "http://adobe-update-critical-patch.top/setup.msi", ip: "185.193.12.9", asn: "AS_1001_FastTransit" },
+        { threat: "Telecom Phishing", raw_url: "https://turkcell-fatura-odeme-tahsilat.org/pay", ip: "185.193.12.10", asn: "AS_1002_GlobalHost" }
     ];
 
-    // 3. Tabloyu Guvenli Bir Bicimde (Asla <a> Linki Olmadan) Doldur
-    function renderThreatFeed() {
+    let currentThreatCount = 642;
+    let streamInterval = null;
+    let poolIndex = 0;
+
+    // Tabloya Yeni Canli Tehdit Ekle
+    function addThreatRow(item, isNew = false) {
         const tbody = document.getElementById('threatTableBody');
-        tbody.innerHTML = '';
+        const tr = document.createElement('tr');
+        if (isNew) tr.className = 'new-entry';
 
-        sampleThreats.forEach(item => {
-            const tr = document.createElement('tr');
-            
-            // Defanged URL hesapla
-            const safeUrl = defangLogic(item.raw_url);
-            const badgeClass = item.threat.includes('Malware') ? 'tag-malware' : 'tag-phish';
+        const safeUrl = defangLogic(item.raw_url);
+        const badgeClass = item.threat.includes('Malware') ? 'tag-malware' : 'tag-phish';
 
-            tr.innerHTML = `
-                <td><span class="tag-pill ${badgeClass}">${item.threat}</span></td>
-                <td><span class="defanged-box">${safeUrl}</span></td>
-                <td style="color: var(--text-muted); font-size: 0.8rem;">${item.ip}<br><code>${item.asn}</code></td>
-                <td><span style="color: var(--emerald); font-size: 0.75rem; font-weight: 600;">✓ Tıklanamaz</span></td>
-            `;
+        tr.innerHTML = `
+            <td><span class="tag-pill ${badgeClass}">${item.threat}</span></td>
+            <td><span class="defanged-box">${safeUrl}</span></td>
+            <td style="color: var(--text-muted); font-size: 0.8rem;">${item.ip}<br><code style="color: #94a3b8;">${item.asn}</code></td>
+            <td><span style="color: var(--emerald); font-size: 0.75rem; font-weight: 600;">✓ Tıklanamaz</span></td>
+        `;
+
+        if (tbody.firstChild) {
+            tbody.insertBefore(tr, tbody.firstChild);
+        } else {
             tbody.appendChild(tr);
-        });
+        }
+
+        // Tablonun 12 satirdan fazla sismesini onle (RAM korumasi)
+        if (tbody.children.length > 12) {
+            tbody.removeChild(tbody.lastChild);
+        }
     }
 
-    // 4. Test Konsolu Isleyisi
+    // Periyodik Canli Akis Similasyonu
+    function streamNextThreat() {
+        const item = threatPool[poolIndex % threatPool.length];
+        poolIndex++;
+        addThreatRow(item, true);
+
+        // Sayaclari guncelle
+        currentThreatCount++;
+        document.getElementById('counterThreats').innerText = currentThreatCount;
+        document.getElementById('lastDetectTimer').innerText = "Son tespit: az önce";
+    }
+
+    // Akis Durdur / Devam Et
+    function toggleStream() {
+        const btn = document.getElementById('toggleStreamBtn');
+        if (streamInterval) {
+            clearInterval(streamInterval);
+            streamInterval = null;
+            btn.innerText = "Akışı Başlat";
+            btn.style.color = "var(--emerald)";
+        } else {
+            streamInterval = setInterval(streamNextThreat, 3500);
+            btn.innerText = "Akışı Duraklat";
+            btn.style.color = "var(--text-main)";
+        }
+    }
+
+    // Defang Konsolu
     function handleDefangAction() {
         const input = document.getElementById('customUrl').value;
         const resultDiv = document.getElementById('defangResult');
@@ -359,10 +449,16 @@
         }
     }
 
-    // Sayfa acildiginda baslat
+    // Sayfa Yuklendiginde Baslat
     window.onload = function() {
-        renderThreatFeed();
+        // Ilk 5 kaydi bas
+        for (let i = 0; i < 5; i++) {
+            addThreatRow(threatPool[i], false);
+            poolIndex++;
+        }
         handleDefangAction();
+        // Her 3.5 saniyede bir yeni tehdit dussun
+        streamInterval = setInterval(streamNextThreat, 3500);
     };
 </script>
 
